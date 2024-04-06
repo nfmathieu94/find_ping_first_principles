@@ -67,21 +67,21 @@ Creating mPileup file to see difference in basepairs for each read (optional):
  samtools mpileup 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam --reference fasta/left_flank_Ping.fa -o 02_pileup/heg4_to_ping_r2.pileup.out  
 
 
-### Parsing SAM file
+## Parsing SAM file
 
  Want to filter alined reads  
   1. Keep reads that contain Ping SNP  
-  2. Keep Ping reads that have genomic information (soft clipped regions to the left)  
-      - Need to think about cutoffs we want to use  
-  3. Use paired reads if the pair maps to genomic sequence  
+  2. Only keep portion of read that belongs to the sequence flanking Ping to the left (soft clipped regions to the left)  
+  3. Use paired read if the mate maps to genomic sequence
+         - Need to work on this - NM 4.5.24
 
 
-
+Ran this code to create fastq file with reads that belong to Ping and are trimmed to only have left flanking Ping region
 python scripts/main_test.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam 03_filtered_reads/filtered_reads_r1.bam A 16  
 python scripts/main_test.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam 03_filtered_reads/filtered_reads_r2.bam A 16  
 
-- Had to rename the fastq files to include p1 and p2 in the name (want to fix this later)  
-- Not sure if we need right flanking information?  
+- Had to rename the fastq files to include p1 and p2 in the name (want to fix this later) - NM 4.5.24  
+- Not sure if we need right flanking information? - NM 4.5.24 
 
 ### Issues + Up next
 
