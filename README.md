@@ -34,29 +34,34 @@ contains the SNP the differs between Ping and mPing.
 
 ### HEG4 Short Reads to Ping
 
+Aligning HEG4 whole genome short reads to Ping substring containing SNP.  
+
 module load minimap2  
 minimap2 -a  -x sr fasta/left_flank_Ping.fa fastq/HEG4_2.1_p1.fq.gz -t 24 -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r2.sam  
 minimap2 -a  -x sr fasta/left_flank_Ping.fa fastq/HEG4_2.1_p2.fq.gz -t 24 -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r2.sam  
 
-### Filtering unaligned reads and making pileup of reads to Flanking Ping Sequence
+### Filtering unaligned reads and making pileup of reads to flanking Ping Sequence
 
-Sort flanking Ping sequence is fasta directory:  
+Sort flanking Ping sequence in fasta directory:  
+
 module load samtools  
 samtools faidx left_flank_Ping.fa  
 
 Create bam file with unaligned reads removed in 01_aln_out/heg4_reads_to_Ping_flank directory:  
+
 samtools view -F 4 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r1.sam -OBAM -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.bam  
 samtools view -F 4 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r2.sam -OBAM -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.bam  
 
 Sort and index sorted bam file in 01_aln_out/heg4_reads_to_Ping_flank directory:  
+
 samtools sort 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.bam -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam  
 samtools sort 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.bam -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam  
 
 samtools index 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam  
 samtools index 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam  
 
-Looking at alignment of reads against left flanking Ping (optional):  
-    - A way to visualize alignment  
+Looking at alignment of reads against left flanking Ping (optional):   
+    
 samtools tview aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam --reference aln_out/mping_to_ping/left_flank_Ping.fa  
 
 Creating mPileup file to see difference in basepairs for each read (optional):  
@@ -77,6 +82,7 @@ Creating mPileup file to see difference in basepairs for each read (optional):
 
 
 Ran this code to create fastq file with reads that belong to Ping and are trimmed to only have left flanking Ping region
+
 python scripts/main_test.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam 03_filtered_reads/filtered_reads_r1.bam A 16  
 python scripts/main_test.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam 03_filtered_reads/filtered_reads_r2.bam A 16  
 
