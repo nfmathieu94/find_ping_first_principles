@@ -35,31 +35,4 @@ def extract_flanking_sequences(read, reference, left_flank_file, right_flank_fil
     left_flank_file.write(f">{read.query_name}_left\n{left_flank}\n")
     right_flank_file.write(f">{read.query_name}_right\n{right_flank}\n")
 
-# Main function to create fasta files
-def main():
-    parser = argparse.ArgumentParser(description="Extract reads containing a specific SNP at a given position")
-    parser.add_argument("input_file", type=str, help="Input BAM file containing aligned reads")
-    parser.add_argument("output_file", type=str, help="Output BAM file containing reads of interest")
-    parser.add_argument("snp_nt", type=str, help="Specific nucleotide of interest (A, C, G, or T)")
-    parser.add_argument("snp_pos", type=int, help="Position in read where SNP occurs (1-based)")
-
-    args = parser.parse_args()
-
-    get_reads(args.input_file, args.output_file, args.snp_nt, args.snp_pos)
-
-    reference_genome = "reference_genome.fasta"  # Provide path to the reference genome FASTA file
-    bam_file = pysam.AlignmentFile(args.input_file, "rb")
-
-    left_flank_file = open("left_flank.fasta", "w")
-    right_flank_file = open("right_flank.fasta", "w")
-
-    for read in bam_file:
-        extract_flanking_sequences(read, reference_genome, left_flank_file, right_flank_file)
-
-    left_flank_file.close()
-    right_flank_file.close()
-    bam_file.close()
-
-if __name__ == "__main__":
-    main()
 
