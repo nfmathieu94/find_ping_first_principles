@@ -14,7 +14,7 @@ Finding Ping but starting with first principles
 
 HEG4 fastq data is being used to test finding ping because we know the locations  
     - Reads were trimmed using fastp in previous project  
-        * /rhome/nmath020/wessler_bigdata/rice/parental/HEG4/00_trim/trimmed/
+        - /rhome/nmath020/wessler_bigdata/rice/parental/HEG4/00_trim/trimmed/
 
 ## Alignment
 
@@ -65,16 +65,6 @@ Creating mPileup file to see difference in basepairs for each read (optional):
  
  samtools mpileup 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam --reference fasta/left_flank_Ping.fa -o 02_pileup/heg4_to_ping_r1.pileup.out  
  samtools mpileup 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam --reference fasta/left_flank_Ping.fa -o 02_pileup/heg4_to_ping_r2.pileup.out  
-
-### Parsing SAM file
-
- Want to filter alined reads  
-  1. Keep reads that contain Ping SNP  
-  2. Keep Ping reads that have genomic information (soft clipped regions to the left)  
-      - Need to think about cutoffs we want to use  
-  3. Use paired reads if the pair maps to genomic sequence  
-
-
 
 
 ### Parsing SAM file
