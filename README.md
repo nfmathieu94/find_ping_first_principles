@@ -22,7 +22,7 @@ HEG4 fastq data is being used to test finding ping because we know the locations
 
 Commands to look at alignment between ping and mping  
     - Can see the SNP at base 16  
-    - Ran in head directory (first_principles)  
+    - Ran in head directory (find_ping_first_principles)  
 
 module load fasta  
 fasta36 -f -a -3 -O aln_out/mping_to_ping/mping_ping_aln.out lib/elements/mping.fa  lib/elements/ping.fa  
