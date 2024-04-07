@@ -14,7 +14,7 @@ Finding Ping but starting with first principles
 
 HEG4 fastq data is being used to test finding ping because we know the locations  
     - Reads were trimmed using fastp in previous project  
-        - /rhome/nmath020/wessler_bigdata/rice/parental/HEG4/00_trim/trimmed/
+        - ```/rhome/nmath020/wessler_bigdata/rice/parental/HEG4/00_trim/trimmed/```
 
 ## Alignment
 
@@ -38,41 +38,56 @@ contains the SNP the differs between Ping and mPing.
 
 Aligning HEG4 whole genome short reads to Ping substring containing SNP.  
 
+```bash
 module load minimap2  
 minimap2 -a  -x sr fasta/left_flank_Ping.fa fastq/HEG4_2.1_p1.fq.gz -t 24 -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r2.sam  
 minimap2 -a  -x sr fasta/left_flank_Ping.fa fastq/HEG4_2.1_p2.fq.gz -t 24 -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r2.sam  
+```
 
 ### Filtering unaligned reads and making pileup of reads to flanking Ping Sequence
 
 Sort flanking Ping sequence in fasta directory:  
 
+```bash
 module load samtools  
 samtools faidx left_flank_Ping.fa  
+```
 
 Create bam file with unaligned reads removed in 01_aln_out/heg4_reads_to_Ping_flank directory:  
 
+```bash
+module load samtools
 samtools view -F 4 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r1.sam -OBAM -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.bam  
 samtools view -F 4 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r2.sam -OBAM -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.bam  
+```
 
 Sort and index sorted bam file in 01_aln_out/heg4_reads_to_Ping_flank directory:  
 
+```bash
+module load samtools
 samtools sort 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.bam -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam  
 samtools sort 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.bam -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam  
 
 samtools index 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam  
 samtools index 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam  
+```
 
 Looking at alignment of reads against left flanking Ping (optional):   
-    
+
+```bash
+module load samtools  
 samtools tview aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam --reference aln_out/mping_to_ping/left_flank_Ping.fa  
+```
 
 Creating mPileup file to see difference in basepairs for each read (optional):  
     - A way to check that Ping and mPing reads are being captured  
     - Expect to see more of the mPing SNP (G at position 16) compared to Ping SNP (A at position 16)  
- 
- samtools mpileup 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam --reference fasta/left_flank_Ping.fa -o 02_pileup/heg4_to_ping_r1.pileup.out  
- samtools mpileup 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam --reference fasta/left_flank_Ping.fa -o 02_pileup/heg4_to_ping_r2.pileup.out  
 
+ ```bash
+module load samtools
+samtools mpileup 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam --reference fasta/left_flank_Ping.fa -o 02_pileup/heg4_to_ping_r1.pileup.out  
+samtools mpileup 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam --reference fasta/left_flank_Ping.fa -o 02_pileup/heg4_to_ping_r2.pileup.out  
+```
 
 ## Parsing SAM file
 
@@ -85,8 +100,10 @@ Creating mPileup file to see difference in basepairs for each read (optional):
 
 Ran this code to create fastq file with reads that belong to Ping and are trimmed to only have left flanking Ping region
 
+```
 python scripts/main_test.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam 03_filtered_reads/filtered_reads_r1.bam A 16  
 python scripts/main_test.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam 03_filtered_reads/filtered_reads_r2.bam A 16  
+```
 
 - Had to rename the fastq files to include p1 and p2 in the name (want to fix this later) - NM 4.5.24  
 - Not sure if we need right flanking information? - NM 4.5.24 
