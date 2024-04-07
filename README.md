@@ -24,8 +24,10 @@ Commands to look at alignment between ping and mping
     - Can see the SNP at base 16  
     - Ran in head directory (find_ping_first_principles)  
 
+```bash
 module load fasta  
 fasta36 -f -a -3 -O aln_out/mping_to_ping/mping_ping_aln.out lib/elements/mping.fa  lib/elements/ping.fa  
+```
 
 ### Ping Flanking Sequence
 
@@ -89,6 +91,17 @@ python scripts/main_test.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_mat
 - Had to rename the fastq files to include p1 and p2 in the name (want to fix this later) - NM 4.5.24  
 - Not sure if we need right flanking information? - NM 4.5.24 
 
+
+
+
+
+## Aligning Subreads To Reference Genome
+
+First Try:
+
+module load 
+
+
 ### Issues + Up next
 
 The fastq files do appear to have trimmed reads, but many of the entries have no reads  
@@ -97,4 +110,6 @@ The fastq files do appear to have trimmed reads, but many of the entries have no
 Going to try to align these filtered and trimmed reads to the genome and see what happens  
     - Need to figure out the best tool and settings to find all possible locations for short read substrings  
 
-Also want to put the above command line steps in a bash script 
+Also want to put the above command line steps in a bash script  
+
+
