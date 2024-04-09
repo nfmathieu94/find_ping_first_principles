@@ -117,8 +117,10 @@ Create concatenated file that has all read mapping locations:
 bash pipeline/05_concat_read_locations.sh 
 ```
 
-The above code creates this file:
+The above code creates this file:  
+```
 04_aln_to_genome_out/combined_read_locations_with_filenames.tsv
+```
 
 ### Validating Results
 
