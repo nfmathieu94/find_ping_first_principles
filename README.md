@@ -18,6 +18,14 @@ HEG4 fastq data is being used to test finding ping because we know the locations
 
 ## Alignment
 
+Start interactive job
+
+```bash
+srun --partition=batch --mem=40gb --cpus-per-task 8 --ntasks 1 --time 06:00:00 --pty bash -l
+```
+
+All code was ran in head working directory (find_ping_first_principles)
+
 ### mPing to Ping
 
 Commands to look at alignment between ping and mping  
@@ -25,8 +33,7 @@ Commands to look at alignment between ping and mping
     - Ran in head directory (find_ping_first_principles)  
 
 ```bash
-module load fasta  
-fasta36 -f -a -3 -O aln_out/mping_to_ping/mping_ping_aln.out lib/elements/mping.fa  lib/elements/ping.fa  
+bash pipeline/01_run_mping_ping_aln.sh
 ```
 
 ### Ping Flanking Sequence
@@ -36,58 +43,27 @@ contains the SNP the differs between Ping and mPing.
 
 ### HEG4 Short Reads to Ping
 
-Aligning HEG4 whole genome short reads to Ping substring containing SNP.  
+Aligning HEG4 whole genome short reads to Ping substring containing SNP. 
+Right now this is aligning _p1 and _p2 fastq files separately (might want to rethink this later?)
+
+The following script:
+    1. Indexes left flanking sequence (manually selected from 01_run_mping_ping_aln.sh output)
+    2. Aligns HEG4 short reads to left flanking sequence that contains SNP
+    3. Creates bam file that has unaligned reads removed
+    4. Sorts bam files
+    5. Indexes bam files
+    6. Creates pipleup output (optional for visualization)
 
 ```bash
-module load minimap2  
-minimap2 -a  -x sr fasta/left_flank_Ping.fa fastq/HEG4_2.1_p1.fq.gz -t 24 -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r2.sam  
-minimap2 -a  -x sr fasta/left_flank_Ping.fa fastq/HEG4_2.1_p2.fq.gz -t 24 -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r2.sam  
+bash pipeline/02_aln_reads_to_ping_flank.sh
 ```
 
-### Filtering unaligned reads and making pileup of reads to flanking Ping Sequence
-
-Sort flanking Ping sequence in fasta directory:  
+Looking at alignment of reads against left flanking Ping sequence (optional):   
 
 ```bash
-module load samtools  
-samtools faidx left_flank_Ping.fa  
+samtools tview 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_p1.sort.bam --reference ping_flank/left_flank_Ping.fa
 ```
 
-Create bam file with unaligned reads removed in 01_aln_out/heg4_reads_to_Ping_flank directory:  
-
-```bash
-module load samtools
-samtools view -F 4 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r1.sam -OBAM -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.bam  
-samtools view -F 4 01_aln_out/heg4_reads_to_Ping_flank/heg4_onlyPing_r2.sam -OBAM -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.bam  
-```
-
-Sort and index sorted bam file in 01_aln_out/heg4_reads_to_Ping_flank directory:  
-
-```bash
-module load samtools
-samtools sort 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.bam -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam  
-samtools sort 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.bam -o 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam  
-
-samtools index 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam  
-samtools index 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam  
-```
-
-Looking at alignment of reads against left flanking Ping (optional):   
-
-```bash
-module load samtools  
-samtools tview aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam --reference aln_out/mping_to_ping/left_flank_Ping.fa  
-```
-
-Creating mPileup file to see difference in basepairs for each read (optional):  
-    - A way to check that Ping and mPing reads are being captured  
-    - Expect to see more of the mPing SNP (G at position 16) compared to Ping SNP (A at position 16)  
-
- ```bash
-module load samtools
-samtools mpileup 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam --reference fasta/left_flank_Ping.fa -o 02_pileup/heg4_to_ping_r1.pileup.out  
-samtools mpileup 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam --reference fasta/left_flank_Ping.fa -o 02_pileup/heg4_to_ping_r2.pileup.out  
-```
 
 ## Parsing SAM file
 
@@ -98,25 +74,62 @@ samtools mpileup 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.
          - Need to work on this - NM 4.5.24
 
 
-Ran this code to create fastq file with reads that belong to Ping and are trimmed to only have left flanking Ping region
+Ran this code to create fastq files with reads that belong to Ping and are trimmed to only have left flanking Ping region
 
-```
-python scripts/main_test.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r1.sort.bam 03_filtered_reads/filtered_reads_r1.bam A 16  
-python scripts/main_test.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_r2.sort.bam 03_filtered_reads/filtered_reads_r2.bam A 16  
+```bash
+python pipeline/03_get_trimmed_ping_reads.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_p1.sort.bam 03_filtered_reads/filtered_reads_p1.bam A 16
+python pipeline/03_get_trimmed_ping_reads.py 01_aln_out/heg4_reads_to_Ping_flank/heg4_to_ping_match_only_p2.sort.bam 03_filtered_reads/filtered_reads_p2.bam A 16
 ```
 
-- Had to rename the fastq files to include p1 and p2 in the name (want to fix this later) - NM 4.5.24  
+Can run this for argument descriptions for python code:
+
+```bash
+python pipeline/03_get_trimmed_ping_reads.py --help
+```
+
+Then move .fastq files manually (need to fix above code so we don't have to do this) 
+
+```bash
+mv *.fastq 04_aln_to_genome_out 
+```
+
 - Not sure if we need right flanking information? - NM 4.5.24 
-
-
-
-
 
 ## Aligning Subreads To Reference Genome
 
-First Try:
+The following script does:  
+    1. Indexes reference genome  
+    2. Aligns left flank p1 reads to genome (gives left p1 sam file)  
+    3. Aligns left flank p2 reads to genome (gives left p2 sam file)  
+    4. Aligns right flank p1 reads to genome (gives right p1 sam file)
+    5. Aligns right flank p2 reads to genome (gives right p2 sam file)
 
-module load 
+Currently this is using bwa aln since processed subreads can be very short  
+    - Should think about other tools and parameters to include  
+
+```bash
+bash pipeline/04_align_reads_to_genome.sh
+```
+
+Create concatenated file that has all read mapping locations:
+
+```bash
+bash pipeline/05_concat_read_locations.sh 
+```
+
+The above code creates this file:
+04_aln_to_genome_out/combined_read_locations_with_filenames.tsv
+
+### Validating Results
+
+Compare all read mapping positions in concatenated file to the 7 known HEG4 ping locations.  
+The known HEG4 locations are found here:
+
+```
+known_ping_loc/heg4_pings.csv
+```
+
+------------------------------
 
 
 ### Issues + Up next
@@ -124,9 +137,6 @@ module load
 The fastq files do appear to have trimmed reads, but many of the entries have no reads  
     - Think this is an issue when slicing the read string using the soft clipped value??  
 
-Going to try to align these filtered and trimmed reads to the genome and see what happens  
-    - Need to figure out the best tool and settings to find all possible locations for short read substrings  
 
-Also want to put the above command line steps in a bash script  
-
+Known ping locations are not being recovered using this current pipeline. - NM 4.9.2024
 

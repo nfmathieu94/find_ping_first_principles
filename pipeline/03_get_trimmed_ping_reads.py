@@ -1,29 +1,30 @@
-#!/bin/python3
 import argparse
 import pysam
+import os
 
-
-# Want to fix so prefix of input_file is incorporated in output file
 def get_reads(input_file, output_file, snp_nt, snp_pos):
-    bam_file_input = pysam.AlignmentFile(input_file, "rb")
-    filtered_reads_bam = pysam.AlignmentFile(output_file, "wb", header=bam_file_input.header)
+    try:
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)  # Create output directory if it doesn't exist
+        bam_file_input = pysam.AlignmentFile(input_file, "rb")
+        filtered_reads_bam = pysam.AlignmentFile(output_file, "wb", header=bam_file_input.header)
 
-    for read in bam_file_input:
-        if read.seq[snp_pos - 1] == snp_nt:  # Assuming 1-based indexing, need to check this
-            filtered_reads_bam.write(read)
+        for read in bam_file_input:
+            if read.seq[snp_pos - 1] == snp_nt:
+                filtered_reads_bam.write(read)
 
-    bam_file_input.close()
-    filtered_reads_bam.close()
+        bam_file_input.close()
+        filtered_reads_bam.close()
 
-    print(f'Filtered read file {output_file} created')
+        print(f'Filtered read file {output_file} created')
 
-    # Index the output BAM file
-    pysam.index(output_file)
+        # Index the output BAM file
+        pysam.index(output_file)
 
-    print(f'Index file for {output_file} created')
+        print(f'Index file for {output_file} created')
+    except Exception as e:
+        print(f"Error: {e}")
 
-# Want to add p1 or p2 in fastq output name
-def extract_soft_clipped_sequences(read, left_flank_fastq, right_flank_fastq):
+def extract_soft_clipped_sequences(read, left_flank_fastq, right_flank_fastq, prefix):
     left_flank_seq = ''
     right_flank_seq = ''
     left_flank_qual = ''
@@ -43,8 +44,8 @@ def extract_soft_clipped_sequences(read, left_flank_fastq, right_flank_fastq):
         elif operation in [1, 2, 7, 8]:  # Insertion, Deletion, Soft clip on the right, Soft clip on the left
             read_pos += length
 
-    left_flank_fastq.write(f"@{read.query_name}_left\n{left_flank_seq}\n+\n{left_flank_qual}\n")
-    right_flank_fastq.write(f"@{read.query_name}_right\n{right_flank_seq}\n+\n{right_flank_qual}\n")
+    left_flank_fastq.write(f"@{prefix}_left\n{left_flank_seq}\n+\n{left_flank_qual}\n")
+    right_flank_fastq.write(f"@{prefix}_right\n{right_flank_seq}\n+\n{right_flank_qual}\n")
 
 def main():
     parser = argparse.ArgumentParser(description="Extract reads containing a specific SNP at a given position")
@@ -55,15 +56,29 @@ def main():
 
     args = parser.parse_args()
 
+    # Extracting prefix from input file name
+    input_prefix = os.path.splitext(os.path.basename(args.input_file))[0]
+
     get_reads(args.input_file, args.output_file, args.snp_nt, args.snp_pos)
 
     bam_file = pysam.AlignmentFile(args.output_file, "rb")
 
-    left_flank_fastq = open("left_flank.fastq", "w")
-    right_flank_fastq = open("right_flank.fastq", "w")
+    # Modifying output file names based on 'p1' or 'p2'
+    if 'p1' in input_prefix:
+        left_output = "left_flank_p1.fastq"
+        right_output = "right_flank_p1.fastq"
+    elif 'p2' in input_prefix:
+        left_output = "left_flank_p2.fastq"
+        right_output = "right_flank_p2.fastq"
+    else:
+        left_output = "left_flank.fastq"
+        right_output = "right_flank.fastq"
+
+    left_flank_fastq = open(left_output, "w")
+    right_flank_fastq = open(right_output, "w")
 
     for read in bam_file:
-        extract_soft_clipped_sequences(read, left_flank_fastq, right_flank_fastq)
+        extract_soft_clipped_sequences(read, left_flank_fastq, right_flank_fastq, input_prefix)
 
     left_flank_fastq.close()
     right_flank_fastq.close()
