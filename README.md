@@ -101,8 +101,8 @@ The following script does:
     1. Indexes reference genome  
     2. Aligns left flank p1 reads to genome (gives left p1 sam file)  
     3. Aligns left flank p2 reads to genome (gives left p2 sam file)  
-    4. Aligns right flank p1 reads to genome (gives right p1 sam file)
-    5. Aligns right flank p2 reads to genome (gives right p2 sam file)
+    4. Aligns right flank p1 reads to genome (gives right p1 sam file)  
+    5. Aligns right flank p2 reads to genome (gives right p2 sam file)  
 
 Currently this is using bwa aln since processed subreads can be very short  
     - Should think about other tools and parameters to include  
